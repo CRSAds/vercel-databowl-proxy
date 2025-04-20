@@ -1,37 +1,33 @@
 export default async function handler(req, res) {
-  // ✅ CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*'); // eventueel alleen jouw domein hier
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // ✅ CORS preflight response
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  // Debug: Log ontvangen body
+  console.log('Ontvangen body:', req.body);
 
-  const databowlURL = 'https://crsadvertising.databowl.com/api/v1/lead';
+  const formData = req.body;
 
-  try {
-    const response = await fetch(databowlURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: new URLSearchParams(req.body).toString()
-    });
+  const response = await fetch("https://crsadvertising.databowl.com/api/v1/lead", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams(formData).toString()
+  });
 
-    const text = await response.text();
+  const result = await response.text();
+  console.log("Databowl response:", result);
 
-    res.status(200).json({
-      result: 'created',
-      response: text
-    });
-  } catch (err) {
-    console.error('❌ Error sending to Databowl:', err);
-    res.status(500).json({ error: 'Failed to forward to Databowl' });
-  }
+  res.status(200).send(result);
 }
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
