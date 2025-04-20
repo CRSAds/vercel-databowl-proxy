@@ -32,10 +32,12 @@ export default async function handler(req, res) {
       body: params.toString()
     });
 
-    const result = await response.json();
-    res.status(200).json(result);
+    const result = await response.text();
+    console.log("✅ Databowl response:", result);
+
+    res.status(200).json({ success: true, from_databowl: result });
   } catch (error) {
-    console.error("Fout bij proxy naar Databowl:", error);
-    res.status(500).json({ error: "Fout bij proxy", detail: error.message });
+    console.error("❌ Fout bij proxy naar Databowl:", error);
+    res.status(500).json({ error: "Proxy fout", detail: error.message });
   }
 }
